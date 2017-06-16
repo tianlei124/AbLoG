@@ -1,4 +1,3 @@
-#/usr/bin/env python3
 # -*- coding = utf-8 -*-
 
 # logging模块定义了一些函数和模块，可以帮助我们对一个应用程序或库实现一个灵活的事件日志处理系统
@@ -23,8 +22,10 @@ from aiohttp import web
 # Jinja2 是仿照 Django 模板的 Python 前端引擎模板
 # Environment指的是jinjia2模板的配置环境，FileSystemLoader是文件系统加载器，用来加载模板路径
 from jinja2 import Environment, FileSystemLoader
+from config import configs
 import orm
 from coroweb import add_routes, add_static
+from handlers import cookie2user, COOKIE_NAME
 
 def init_jinja2(app, **kw):
     logging.info('init jinja2...')
@@ -63,6 +64,23 @@ def logger_factory(app, handler):
         # yield from asyncio.sleep(0.3)
         return (yield from handler(request))
     return logger
+
+@asyncio.coroutine
+def auth_factory(app, handler):
+    @asyncio.coroutine
+    def auth(request):
+        logging.info('check user: %s %s' % (request.method, request.path))
+        request.__user__ = None
+        cookie_str = request.cookies.get(COOKIE_NAME)
+        if cookie_str:
+            user = yield from cookie2user(cookie_str)
+            if user:
+                logging.info('set current user: %s' % user.email)
+                request.__user__ = user
+        if request.path.startswith('/manage/') and (request.__user__ is None or not request.__user__.admin):
+            return web.HTTPFound('/signin')
+        return (yield from handler(request))
+    return auth
 
 @asyncio.coroutine
 def data_factory(app, handler):
@@ -112,21 +130,21 @@ def response_factory(app, handler):
                 resp.content_type = 'application/json;charset=utf-8'
                 return resp
             else:
-                #r["__user__"] = request.__user__  # 增加__user__,前端页面将依次来决定是否显示评论框
+                r["__user__"] = request.__user__  # 增加__user__,前端页面将依次来决定是否显示评论框
                 resp = web.Response(body=app['__templating__'].get_template(template).render(**r).encode('utf-8'))
                 resp.content_type = 'text/html;charset=utf-8'
                 return resp
         # 如果响应结果为整数型，且在100和600之间
         # 则此时r为状态码，即404，500等
-        #if isinstance(r, int) and r >= 100 and r < 600:
-        #    return web.Response(r)
+        if isinstance(r, int) and r >= 100 and r < 600:
+            return web.Response(r)
         # 如果响应结果为长度为2的元组
         # 元组第一个值为整数型且在100和600之间
         # 则t为http状态码，m为错误描述，返回状态码和错误描述
-        #if isinstance(r, tuple) and len(r) == 2:
-        #    t, m = r
-        #    if isinstance(t, int) and t >= 100 and t < 600:
-        #        return web.Response(t, str(m))
+        if isinstance(r, tuple) and len(r) == 2:
+            t, m = r
+            if isinstance(t, int) and t >= 100 and t < 600:
+                return web.Response(t, str(m))
         # 默认以字符串形式返回响应结果，设置类型为普通文本
         resp = web.Response(body=str(r).encode('utf-8'))
         resp.content_type = 'text/plain;charset=utf-8'
@@ -152,7 +170,7 @@ def datetime_filter(t):
 def init(loop):
     yield from orm.create_pool(loop=loop, host='127.0.0.1', port=3306, user='root', password='password', db='awesome')
     app = web.Application(loop=loop, middlewares=[
-        logger_factory, response_factory
+        logger_factory, auth_factory, response_factory,
     ])
     init_jinja2(app, filters=dict(datetime=datetime_filter))
     add_routes(app, 'handlers')

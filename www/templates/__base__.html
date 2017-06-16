@@ -1,4 +1,21 @@
 <!DOCTYPE html>
+<!--
+{% macro pagination(url, page) %}
+    <ul class="uk-pagination">
+        {% if page.has_previous %}
+            <li><a href="{{ url }}{{ page.page_index - 1 }}"><i class="uk-icon-angle-double-left"></i></a></li>
+        {% else %}
+            <li class="uk-disabled"><span><i class="uk-icon-angle-double-left"></i></span></li>
+        {% endif %}
+            <li class="uk-active"><span>{{ page.page_index }}</span></li>
+        {% if page.has_next %}
+            <li><a href="{{ url }}{{ page.page_index + 1 }}"><i class="uk-icon-angle-double-right"></i></a></li>
+        {% else %}
+            <li class="uk-disabled"><span><i class="uk-icon-angle-double-right"></i></span></li>
+        {% endif %}
+    </ul>
+{% endmacro %}
+-->
 <html>
 <head>
     <meta charset="utf-8" />
@@ -8,8 +25,10 @@
     <link rel="stylesheet" href="../static/css/uikit.gradient.min.css">
     <link rel="stylesheet" href="../static/css/awesome.css" />
     <script src="../static/js/jquery.min.js"></script>
-    <script src="../static/js/md5.js"></script>
+    <script src="../static/js/sha1.min.js"></script>
     <script src="../static/js/uikit.min.js"></script>
+    <script src="../static/js/sticky.min.js"></script>
+    <script src="../static/js/vue.min.js"></script>
     <script src="../static/js/awesome.js"></script>
     {% block beforehead %}<!-- before head  -->{% endblock %}
 </head>
@@ -18,24 +37,24 @@
         <div class="uk-container uk-container-center">
             <a href="/" class="uk-navbar-brand">AbLoG</a>
             <ul class="uk-navbar-nav">
-                <li data-url="blogs"><a href="/"><i class="uk-icon-home"></i> 日志</a></li>
-                <li><a target="_blank" href="#"><i class="uk-icon-book"></i> 教程</a></li>
-                <li><a target="_blank" href="#"><i class="uk-icon-code"></i> 源码</a></li>
+                <li data-url="blogs"><a href="/"><i class="uk-icon-home"></i> Blog</a></li>
+                <li><a target="_blank" href="https://github.com/tianlei124"><i class="uk-icon-camera-retro"></i> Our Photos</a></li>
+                <li><a target="_blank" href="http://my.csdn.net/richardgreenhhh"><i class="uk-icon-code"></i> Our CSDN Pages </a></li>
             </ul>
             <div class="uk-navbar-flip">
                 <ul class="uk-navbar-nav">
-                {% if user %}
+                {% if __user__ %}
                     <li class="uk-parent" data-uk-dropdown>
-                        <a href="#0"><i class="uk-icon-user"></i> {{ user.name }}</a>
+                        <a href="#0"><i class="uk-icon-user"></i> {{ __user__.name }}</a>
                         <div class="uk-dropdown uk-dropdown-navbar">
                             <ul class="uk-nav uk-nav-navbar">
-                                <li><a href="/signout"><i class="uk-icon-sign-out"></i> log out</a></li>
+                                <li><a href="/signout"><i class="uk-icon-sign-out"></i> 登出</a></li>
                             </ul>
                         </div>
                     </li>
                 {% else %}
-                    <li><a href="/signin"><i class="uk-icon-sign-in"></i> log in</a></li>
-                    <li><a href="/register"><i class="uk-icon-edit"></i> register</a></li>
+                    <li><a href="/signin"><i class="uk-icon-sign-in"></i> 登陆</a></li>
+                    <li><a href="/register"><i class="uk-icon-edit"></i> 注册</a></li>
                 {% endif %}
                 </ul>
             </div>
@@ -55,14 +74,14 @@
         <div class="uk-container uk-container-center uk-text-center">
             <div class="uk-panel uk-margin-top uk-margin-bottom">
                 <p>
-                    <a target="_blank" href="#" class="uk-icon-button uk-icon-weibo"></a>
-                    <a target="_blank" href="#" class="uk-icon-button uk-icon-github"></a>
-                    <a target="_blank" href="#" class="uk-icon-button uk-icon-stack-overflow"></a>
-                    <a target="_blank" href="#" class="uk-icon-button uk-icon-twitter"></a>
+                    <a target="_blank" href="http://weibo.com/u/5722503061/home" class="uk-icon-button uk-icon-weibo"></a>
+                    <a target="_blank" href="https://github.com/tianlei124" class="uk-icon-button uk-icon-github"></a>
+                    <a target="_blank" href="https://stackoverflow.com/users/7108034/%E7%8B%AC%E8%A1%8C%E4%BE%A0" class="uk-icon-button uk-icon-stack-overflow"></a>
                 </p>
-                <p>This is a Blog write in Python by T&L </p>
-                <a target="_blank" href="#"><i class="uk-icon-linux" style="font-size:64px; color: #444;"></i></a>
+                <p style="font-size: large;">This a blog written in Python by T&L</p>
+                <a target="_blank" href="https://www.linux.org/"><i class="uk-icon-linux" style="font-size:48px; color: #444;"></i></a>
             </div>
+
         </div>
     </div>
 </body>
